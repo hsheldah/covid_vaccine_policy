@@ -318,9 +318,43 @@ infection_diff_large_ca = infection_diff_carate(501, 5000, 100)
 
 mean(infection_diff_small_ca$inf_diff)
 #0.1120458
-
 mean(infection_diff_medium_ca$inf_diff)
 # 0.6285451
+mean(infection_diff_large_ca$inf_diff)
+#5.677565
 
 
+infection_diff_lowrate = function(minemp, maxemp, nsims){
+  infected_diff = list()
+  for (i in 1:nsims){
+    inf_diff_sub <- tibble(numemp=NA, infect_difference_novac_vac=NA)
+    numemp <- sample(minemp:maxemp, 1)
+    infectious_noempvac <- simulate(inf.prob.i = 0.05, s.num = round(.54*numemp),  r.num =  round(.30*numemp), i.num = round(.06*numemp), act.rate.e= round(.1*numemp),  type = "SIR")
+    infectious_empvac <- simulate(inf.prob.i = 0.05, s.num = .5*(round(.54*numemp)),  r.num = round(.30*numemp) + .5*(round(.54*numemp)), i.num = round(.06*numemp),act.rate.e= round(.1*numemp),  type = "SIR")
+    
+    baseline_vac <- infectious_empvac$df %>% 
+      dplyr::select(time, s.num,  i.num,  num)
+    baseline_novac <- infectious_noempvac$df %>% 
+      dplyr::select(time, s.num,  i.num,  num)
+    
+    inf_diff_sub$infect_difference_novac_vac = mean(baseline_novac$i.num) -  mean(baseline_vac$i.num)
+    inf_diff_sub$numemp = numemp
+    infected_diff[[i]] = inf_diff_sub
+  }
+  #Appending output:
+  inf_output = do.call("rbind", infected_diff)
+  colnames(inf_output) = c("num_employees", "inf_diff")
+  mean(inf_output_large$inf_diff)
+  return(inf_output)
+}
 
+infection_diff_small_low = infection_diff_lowrate(2, 100, 100)
+infection_diff_medium_low = infection_diff_lowrate(101, 500, 100)
+infection_diff_large_low = infection_diff_lowrate(501, 5000, 100)
+
+mean(infection_diff_small_low$inf_diff)
+# 0.2636749
+mean(infection_diff_medium_low$inf_diff)
+# 1.614126
+mean(infection_diff_large_low$inf_diff)
+#15.8606
